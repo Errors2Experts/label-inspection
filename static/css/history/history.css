@@ -1,0 +1,38 @@
+/* ===== History & Evidence page ===== */
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.filter-search {
+    flex: 1;
+    min-width: 220px;
+    max-width: 280px;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 40px 12px !important;
+}
+
+.pagination {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    padding-top: 16px;
+}
+
+.page-info {
+    color: var(--text-muted);
+    font-size: 13px;
+}

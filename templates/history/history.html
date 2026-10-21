@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}History &amp; Evidence{% endblock %}
+{% block page_title %}History &amp; Evidence{% endblock %}
+{% block nav_history %}active{% endblock %}
+
+{% block content %}
+
+<!-- Filters -->
+<form method="get" class="card filters">
+  <input type="text" name="q" class="input filter-search"
+         placeholder="Search by ID, product, barcode..." value="{{ request.GET.q }}">
+
+  <select name="status" class="select">
+    <option value="">All Status</option>
+    {% for value, label in status_choices %}
+      <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+
+  <input type="date" name="date" class="input" value="{{ request.GET.date }}">
+
+  <button type="submit" class="btn btn-primary">Filter</button>
+  <a href="{{ request.path }}" class="btn">Reset</a>
+</form>
+
+<!-- Inspections table -->
+<div class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Inspection ID</th>
+          <th>Product</th>
+          <th>Barcode</th>
+          <th>Inspector</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ins in data %}
+        <tr>
+          <td><strong>{{ ins.inspection_number }}</strong></td>
+          <td>{{ ins.product.name }}</td>
+          <td>{{ ins.product.barcode|default:"-" }}</td>
+          <td>{{ ins.inspector.get_full_name|default:ins.inspector.username }}</td>
+          <td>{% include "partials/status_badge.html" with status=ins.status label=ins.get_status_display %}</td>
+          <td>{{ ins.created_at|date:"d M Y" }}</td>
+          <td class="actions">
+            <a href="{% url 'inspection_detail' ins.id %}" class="btn btn-sm">View</a>
+            <a href="#" class="btn btn-sm">Report</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="empty">No inspections found. Try changing the filters.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

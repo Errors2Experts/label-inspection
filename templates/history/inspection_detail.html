@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ inspection.inspection_number }}{% endblock %}
+{% block page_title %}{{ inspection.inspection_number }}{% endblock %}
+{% block nav_history %}active{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'history_evidence' %}" class="btn">Back to History</a>
+  <a href="#" class="btn btn-primary">Download Report</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- Summary -->
+<div class="card summary">
+  <div class="summary-left">
+    <div class="summary-icon">📦</div>
+    <div>
+      <div class="summary-product">{{ inspection.product.name|default:"Unknown product" }}</div>
+      <div class="summary-meta">Barcode {{ inspection.product.barcode|default:"-" }}</div>
+    </div>
+  </div>
+  <div class="summary-status">
+    {% include "partials/status_badge.html" with status=inspection.status label=inspection.get_status_display %}
+  </div>
+</div>
+
+<div class="detail-grid">
+  <div class="card">
+    <h2 class="card-title">Inspection details</h2>
+    <dl class="info-list">
+      <div><dt>Inspection ID</dt><dd>{{ inspection.inspection_number }}</dd></div>
+      <div><dt>Inspector</dt><dd>{{ inspection.inspector.get_full_name|default:inspection.inspector.username }}</dd></div>
+      <div><dt>Created</dt><dd>{{ inspection.created_at|date:"d M Y, h:i A" }}</dd></div>
+      <div><dt>Started</dt><dd>{{ inspection.started_at|date:"d M Y, h:i A"|default:"-" }}</dd></div>
+      <div><dt>Completed</dt><dd>{{ inspection.completed_at|date:"d M Y, h:i A"|default:"-" }}</dd></div>
+    </dl>
+  </div>
+
+  <div class="card">
+    <h2 class="card-title">Product</h2>
+    <dl class="info-list">
+      <div><dt>Name</dt><dd>{{ inspection.product.name|default:"-" }}</dd></div>
+      <div><dt>Barcode</dt><dd>{{ inspection.product.barcode|default:"-" }}</dd></div>
+      <div><dt>Brand</dt><dd>{{ inspection.verified_data.brand|default:"-" }}</dd></div>
+      <div><dt>Images</dt><dd>{{ inspection.images.all|length }}</dd></div>
+    </dl>
+  </div>
+</div>
+
+<!-- Verified label data -->
+<div class="card">
+  <h2 class="card-title">Verified label data</h2>
+  {% with v=inspection.verified_data %}
+    {% if v %}
+      <dl class="info-list two-col">
+        <div><dt>Product name</dt><dd>{{ v.product_name|default:"-" }}</dd></div>
+        <div><dt>Brand</dt><dd>{{ v.brand|default:"-" }}</dd></div>
+        <div><dt>MRP</dt><dd>{% if v.mrp %}₹{{ v.mrp }}{% else %}-{% endif %}</dd></div>
+        <div><dt>Net quantity</dt><dd>{{ v.net_quantity|default:"-" }}</dd></div>
+        <div><dt>Manufacturing date</dt><dd>{{ v.manufacturing_date|default:"-" }}</dd></div>
+        <div><dt>Best before</dt><dd>{{ v.best_before|default:"-" }}</dd></div>
+        <div><dt>Expiry date</dt><dd>{{ v.expiry_date|default:"-" }}</dd></div>
+        <div><dt>FSSAI licence</dt><dd>{{ v.fssai_license|default:"-" }}</dd></div>
+        <div><dt>Verified by</dt><dd>{{ v.verified_by.get_full_name|default:v.verified_by.username }}</dd></div>
+        <div><dt>Verified at</dt><dd>{{ v.verified_at|date:"d M Y, h:i A"|default:"-" }}</dd></div>
+      </dl>
+
+      {% if v.ingredients %}<div class="text-field"><div class="text-label">Ingredients</div><p>{{ v.ingredients|linebreaksbr }}</p></div>{% endif %}
+      {% if v.manufacturer %}<div class="text-field"><div class="text-label">Manufacturer</div><p>{{ v.manufacturer|linebreaksbr }}</p></div>{% endif %}
+      {% if v.packer %}<div class="text-field"><div class="text-label">Packer</div><p>{{ v.packer|linebreaksbr }}</p></div>{% endif %}
+      {% if v.importer %}<div class="text-field"><div class="text-label">Importer</div><p>{{ v.importer|linebreaksbr }}</p></div>{% endif %}
+      {% if v.other_declarations %}<div class="text-field"><div class="text-label">Other declarations</div><p>{{ v.other_declarations|linebreaksbr }}</p></div>{% endif %}
+    {% else %}
+      <p class="muted">Label data is not verified yet.</p>
+    {% endif %}
+  {% endwith %}
+</div>
+
+{% if inspection.remarks %}
+<div class="card">
+  <h2 class="card-title">Inspector remarks</h2>
+  <p class="remarks">{{ inspection.remarks|linebreaksbr }}</p>
+</div>
+{% endif %}
+
+<!-- Evidence images -->
+<div class="card">
+  <h2 class="card-title">Evidence</h2>
+  <div class="evidence-grid">
+    {% for img in inspection.images.all %}
+      <a href="{{ img.image.url }}" target="_blank" class="evidence-item">
+        <img src="{{ img.image.url }}" alt="{{ img.get_image_type_display }} image">
+        <span class="evidence-caption">{{ img.get_image_type_display }}</span>
+      </a>
+    {% empty %}
+      <p class="muted">No images uploaded.</p>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}
