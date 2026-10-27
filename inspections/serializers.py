@@ -2,6 +2,7 @@ import uuid
 from .models import *
 from django.utils import timezone
 from rest_framework import serializers
+from products.models import Product
 
 # ================================= OCR RESULT SERIALIZER =================================
 
@@ -113,12 +114,22 @@ class VerifiedDataSerializer(serializers.ModelSerializer):
             )
         return value
 
+# ========================= INSPECTOR VERIFICATION SERIALIZER =========================
+class InspectorVerificationSerializer(serializers.Serializer):
+    ai_analysis = AIAnalysisSerializer(read_only=True)
+    verified_data = VerifiedDataSerializer(read_only=True)
+
 # ==================================== INSPECTION SERIALIZER ====================================
 
 class InspectionSerializer(serializers.ModelSerializer):
     images = InspectionImageSerializer(many=True, read_only=True)
     ai_analyses = AIAnalysisSerializer(many = True, read_only = True)
     verified_data = VerifiedDataSerializer(read_only = True)
+    product = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all(),
+        required=False,
+        allow_null=True,
+    )
 
     class Meta:
         model = Inspection
@@ -162,10 +173,10 @@ class InspectionSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
     def validate(self, attrs):
-        instance = getattr(self, 'instance', None)
+        # instance = getattr(self, 'instance', None)
 
-        if instance is None and not attrs.get("product"):
-            raise serializers.ValidationError({
-                'Product': 'A product must be associated with the inspection.'
-            })
+        # if instance is None and not attrs.get("product"):
+        #     raise serializers.ValidationError({
+        #         'Product': 'A product must be associated with the inspection.'
+        #     })
         return attrs

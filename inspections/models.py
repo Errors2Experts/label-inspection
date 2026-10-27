@@ -35,6 +35,8 @@ class Inspection(models.Model):
         "products.Product",
         on_delete=models.PROTECT,
         related_name="inspections",
+        null=True,
+        blank=True,
     )
 
     status = models.CharField(

@@ -1,3 +1,6 @@
+import logging
+
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
@@ -9,13 +12,113 @@ from rest_framework.response import Response
 
 from .models import *
 from .serializers import *
-
-import logging
-
 from .ocr_service import extract_text
+from .ai_service import extract_label_data
 
 logger = logging.getLogger(__name__)
 
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.decorators import parser_classes
+
+# This is for postman testing remove after the testing
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser])
+def test_ocr(request):
+    image = request.FILES.get("image")
+
+    if not image:
+        return Response(
+            {"detail": "Upload an image using the 'image' field."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if image.size > 10 * 1024 * 1024:
+        return Response(
+            {"detail": "Image size must not exceed 10 MB."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        result = extract_text(image)
+
+        return Response({
+            "raw_text": result["raw_text"],
+            "confidence": result["confidence"],
+        })
+
+    except Exception:
+        logger.exception("Temporary OCR test failed")
+        return Response(
+            {"detail": "OCR processing failed. Check server logs."},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+# This is for postman testing remove after the testing
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser])
+def test_ai_extraction(request):
+    image = request.FILES.get("image")
+
+    if not image:
+        return Response(
+            {"detail": "Upload an image using the 'image' field."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if image.size > 10 * 1024 * 1024:
+        return Response(
+            {"detail": "Image size must not exceed 10 MB."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # Step 1: Extract text from the uploaded image.
+    try:
+        ocr_result = extract_text(image)
+        raw_text = ocr_result["raw_text"].strip()
+
+        if not raw_text:
+            return Response(
+                {"detail": "OCR did not extract any text."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    except Exception:
+        logger.exception("AI test: OCR failed")
+        return Response(
+            {"detail": "OCR processing failed. Check server logs."},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+    # Step 2: Pass OCR text to the existing Gemini extraction service.
+    try:
+        structured_data = extract_label_data(raw_text)
+
+        return Response(
+            {
+                "raw_text": raw_text,
+                "ocr_confidence": ocr_result["confidence"],
+                "structured_data": structured_data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    except Exception as exc:
+        logger.exception("Standalone AI extraction test failed")
+
+        return Response(
+            {
+                "detail": "AI extraction failed.",
+                "error_type": type(exc).__name__,
+                "error": str(exc)[:500],
+            },
+            status=status.HTTP_502_BAD_GATEWAY,
+        )
 
 class InspectionViewSet(viewsets.ModelViewSet):
     """
@@ -232,59 +335,151 @@ class InspectionViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=["get", "post"],
-        url_path="ai-analysis",
+        url_path="ai_analysis",
     )
+
     def ai_analysis(self, request, pk=None):
         inspection = self.get_object()
 
         if request.method == "GET":
-            analyses = inspection.ai_analyses.all()
-
-            serializer = AIAnalysisSerializer(
-                analyses,
-                many=True,
+            analysis = (
+                AIAnalysis.objects
+                .filter(inspection = inspection)
+                .order_by("-id")
+                .first()
             )
 
-            return Response(serializer.data)
+            if analysis is None:
+                return Response(
+                    {"detail": "No AI analysis exists for this inspection."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
 
-        if not inspection.images.exists():
+            return Response(AIAnalysisSerializer(analysis).data)
+
+        # POST: Allow AI extraction only after OCR is completed,
+        # or when retrying a failed inspection.
+        if inspection.status not in [
+            Inspection.Status.OCR_COMPLETED,
+            Inspection.Status.FAILED,
+        ]:
             return Response(
                 {
                     "detail": (
-                        "Upload inspection images "
-                        "before preparing AI analysis."
+                        "AI extraction is allowed only after OCR completion "
+                        "or when retrying a failed inspection."
+                    ),
+                    "inspection_status": inspection.status,
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        # POST: Ensure the Gemini key is configured.
+        if not settings.GEMINI_API_KEY:
+            return Response(
+                {"detail": "Gemini API key is not configured on the server."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        # Use only successfully completed OCR results.
+        ocr_results = (
+            OCRResult.objects
+            .filter(
+                inspection_image__inspection = inspection,
+                status = "COMPLETED",
+            )
+            .select_related("inspection_image")
+            .order_by("inspection_image__sequence")
+        )
+
+        ocr_section = []
+
+        for result in ocr_results:
+            if result.raw_text and result.raw_text.strip():
+                ocr_section.append(
+                    f"Image sequence {result.inspection_image.sequence}:\n"
+                    f"{result.raw_text.strip()}"
+                )
+
+        if not ocr_section:
+            return Response(
+                {
+                    "detail": (
+                        "No completed OCR text was found. "
+                        "Run OCR successfully before AI extraction."
                     )
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        with transaction.atomic():
-            analysis = (
-                inspection.ai_analyses
-                .filter(status=AIAnalysis.Status.PENDING)
-                .first()
-            )
-
-            if analysis is None:
-                analysis = AIAnalysis.objects.create(
-                    inspection=inspection,
-                    status=AIAnalysis.Status.PENDING,
-                )
-
-        return Response(
-            {
-                "detail": (
-                    "AI analysis record is ready. "
-                    "The AI engine is not connected yet."
-                ),
-                "analysis": AIAnalysisSerializer(
-                    analysis
-                ).data,
-            },
-            status=status.HTTP_200_OK,
+        # Create a record so processing failures can also be tracked.
+        analysis = AIAnalysis.objects.create(
+            inspection = inspection,
+            status = "PROCESSING",
+            error_message = "",
         )
 
-    # ====================== VERIFIED INSPECTION DATA ======================
+        inspection.status = "AI_PROCESSING"
+        inspection.save(update_fields=["status", "updated_at"])
+
+        try:
+            combined_ocr_text = "\n\n".join(ocr_section)
+
+            structured_data = extract_label_data(combined_ocr_text)
+
+            analysis.structured_data = structured_data
+            analysis.status = "COMPLETED"
+            analysis.error_message = ""
+            analysis.processed_at = timezone.now()
+            analysis.save(
+                update_fields=[
+                    "structured_data",
+                    "status",
+                    "error_message",
+                    "processed_at",
+                ]
+            )
+
+            inspection.status = Inspection.Status.VERIFICATION_PENDING
+            inspection.save(update_fields=["status", "updated_at"])
+
+            return Response(
+                AIAnalysisSerializer(analysis).data,
+                status=status.HTTP_200_OK
+            )
+
+        except Exception as exe:
+            logger.exception(
+                "AI extraction failed for inspection %s",
+                inspection.pk,
+            )
+
+            analysis.status = "FAILED"
+            analysis.error_message = str(exe)[:2000]
+            analysis.processed_at = timezone.now()
+            analysis.save(
+                update_fields=[
+                    "status",
+                    "error_message",
+                    "processed_at",
+                ]
+            )
+
+            inspection.status = Inspection.Status.FAILED
+            inspection.save(update_fields=["status", "updated_at"])
+
+            return Response (
+                {
+                    "detail": (
+                        "AI extraction failed. Check the Django server logs "
+                        "for the underlying error."
+                    ),
+                    "analysis_id": analysis.pk,
+                },
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
+        # ====================== INSPECTOR VERIFICATION ======================
 
     @action(
         detail=True,
@@ -294,31 +489,144 @@ class InspectionViewSet(viewsets.ModelViewSet):
     def verify(self, request, pk=None):
         inspection = self.get_object()
 
+        # GET: Return AI-extracted fields for review and any
+        # previously saved verified data.
         if request.method == "GET":
-            verified_data = get_object_or_404(
-                VerifiedInspectionData,
-                inspection=inspection,
+            analysis = (
+                AIAnalysis.objects
+                .filter(
+                    inspection=inspection,
+                    status=AIAnalysis.Status.COMPLETED,
+                )
+                .order_by("-processed_at", "-id")
+                .first()
             )
 
-            serializer = VerifiedDataSerializer(
-                verified_data
-            )
-
-            return Response(serializer.data)
-
-        with transaction.atomic():
             verified_data = (
                 VerifiedInspectionData.objects
                 .filter(inspection=inspection)
                 .first()
             )
 
-            is_update = verified_data is not None
+            return Response({
+                "inspection_id": inspection.pk,
+                "inspection_number": inspection.inspection_number,
+                "inspection_status": inspection.status,
+                "ai_analysis": (
+                    AIAnalysisSerializer(analysis).data
+                    if analysis else None
+                ),
+                "verified_data": (
+                    VerifiedDataSerializer(verified_data).data
+                    if verified_data else None
+                ),
+            })
+
+        # POST: Verification requires a completed AI analysis.
+        with transaction.atomic():
+            # Lock the inspection while the verification is saved.
+            inspection = (
+                Inspection.objects
+                .select_for_update()
+                .get(pk=inspection.pk)
+            )
+
+            # Only allow the normal verification-pending state.
+            if inspection.status != Inspection.Status.VERIFICATION_PENDING:
+                return Response(
+                    {
+                        "detail": (
+                            "This inspection is not awaiting verification."
+                        ),
+                        "inspection_status": inspection.status,
+                    },
+                    status=status.HTTP_409_CONFLICT,
+                )
+
+            analysis = (
+                AIAnalysis.objects
+                .filter(
+                    inspection=inspection,
+                    status=AIAnalysis.Status.COMPLETED,
+                )
+                .order_by("-processed_at", "-id")
+                .first()
+            )
+
+            if analysis is None:
+                return Response(
+                    {
+                        "detail": (
+                            "A completed AI analysis is required "
+                            "before inspector verification."
+                        )
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            if not isinstance(analysis.structured_data, dict):
+                return Response(
+                    {
+                        "detail": (
+                            "AI analysis data is invalid. "
+                            "Run AI extraction again."
+                        )
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Prevent an empty submission from being marked verified.
+            editable_fields = {
+                "product_name",
+                "brand",
+                "mrp",
+                "net_quantity",
+                "manufacturing_date",
+                "best_before",
+                "expiry_date",
+                "ingredients",
+                "fssai_license",
+                "manufacturer",
+                "packer",
+                "importer",
+                "other_declarations",
+            }
+
+            submitted_fields = editable_fields.intersection(
+                request.data.keys()
+            )
+
+            if not submitted_fields:
+                return Response(
+                    {
+                        "detail": (
+                            "Submit at least one reviewed label field."
+                        )
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            verified_data = (
+                VerifiedInspectionData.objects
+                .filter(inspection=inspection)
+                .first()
+            )
+
+            if verified_data and verified_data.is_verified:
+                return Response(
+                    {
+                        "detail": (
+                            "This inspection has already been verified."
+                        )
+                    },
+                    status=status.HTTP_409_CONFLICT,
+                )
 
             serializer = VerifiedDataSerializer(
                 instance=verified_data,
                 data=request.data,
-                partial=is_update,
+                partial=verified_data is not None,
+                context={"request": request},
             )
 
             serializer.is_valid(raise_exception=True)
@@ -335,20 +643,17 @@ class InspectionViewSet(viewsets.ModelViewSet):
                 update_fields=["status", "updated_at"]
             )
 
-        response_status = (
-            status.HTTP_200_OK
-            if is_update
-            else status.HTTP_201_CREATED
-        )
-
         return Response(
             {
-                "detail": (
-                    "Verified inspection data saved successfully."
-                ),
+                "detail": "Inspector verification completed successfully.",
+                "inspection_status": inspection.status,
                 "verified_data": VerifiedDataSerializer(
                     verified_data
                 ).data,
             },
-            status=response_status,
+            status=(
+                status.HTTP_200_OK
+                if verified_data
+                else status.HTTP_201_CREATED
+            ),
         )
