@@ -31,7 +31,7 @@ urlpatterns = [
     path("api/reports/", include("reports.urls")),
 
     # New Inspection frontend page
-    path("inspections/new", inspection_page, name="inspection_page",),
+    path("inspections/new/", inspection_page, name="inspection_page"),
 ]
 
 if settings.DEBUG:
