@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}My Profile{% endblock %}
+{% block heading %}My Profile{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="profile-head"><div class="avatar lg">{{ user.initials }}</div>
+    <div><h2>{{ user.full_name }}</h2><div class="pills"><span id="p-role"></span><span class="sub">@{{ user.username }}{% if user.employee_id %} · {{ user.employee_id }}{% endif %}</span></div></div></div>
+  <form id="profile-form" novalidate>
+    <div class="alert error" hidden></div>
+    <div class="form-grid">
+      <div class="field"><label for="first_name">First name</label><input id="first_name" name="first_name"></div>
+      <div class="field"><label for="last_name">Last name</label><input id="last_name" name="last_name"></div>
+      <div class="field"><label for="email">Email <span class="req">*</span></label><input id="email" name="email" type="email" required></div>
+      <div class="field"><label for="phone">Phone</label><input id="phone" name="phone" type="tel"></div>
+    </div>
+    <div class="form-actions"><button class="btn" type="submit">Save profile</button></div>
+  </form>
+</div>
+<div class="card">
+  <div class="card-head"><div><h2>Change password</h2><p class="sub">You'll stay signed in on this device.</p></div></div>
+  <form id="password-form" novalidate>
+    <div class="alert error" hidden></div>
+    <div class="form-grid">
+      <div class="field full"><label for="old_password">Current password</label><input id="old_password" name="old_password" type="password" autocomplete="current-password" required></div>
+      <div class="field"><label for="new_password">New password</label><input id="new_password" name="new_password" type="password" autocomplete="new-password" required></div>
+      <div class="field"><label for="confirm">Confirm new password</label><input id="confirm" name="confirm" type="password" autocomplete="new-password" required></div>
+    </div>
+    <div class="form-actions"><button class="btn" type="submit">Update password</button></div>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'accounts/js/account.js' %}"></script>{% endblock %}

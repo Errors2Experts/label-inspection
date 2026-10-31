@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Compliance Result{% endblock %}
+{% block heading %}Compliance Result{% endblock %}
+{% block content %}
+{% include 'compliance/_tabs.html' with active='results' %}
+<div id="result-detail" data-id="{{ pk }}"><div class="card"><div class="empty">Loading…</div></div></div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'compliance/js/compliance.js' %}"></script>{% endblock %}

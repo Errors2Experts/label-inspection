@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Compliance Results{% endblock %}
+{% block heading %}Compliance Results{% endblock %}
+{% block content %}
+{% include 'compliance/_tabs.html' with active='results' %}
+<div class="card">
+  <div class="card-head"><div><h2>Evaluations</h2><p class="sub">{% if user.role == 'inspector' %}Your evaluations.{% else %}All evaluations.{% endif %}</p></div></div>
+  <div class="toolbar">
+    <input id="f-q" type="search" placeholder="Search reference or pack…" aria-label="Search results" maxlength="100">
+    <select id="f-status" aria-label="Filter by result"><option value="">All results</option><option value="compliant">Compliant</option><option value="non_compliant">Non-Compliant</option><option value="requires_verification">Requires Verification</option><option value="not_applicable">Not Applicable</option></select>
+  </div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>Reference</th><th>Pack</th><th>Result</th><th>Violations</th><th>Evaluated</th><th></th></tr></thead>
+    <tbody id="result-rows"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+  </table></div>
+  <div class="pager"><span id="pager-info"></span><span><button class="btn secondary small" id="prev">← Prev</button> <button class="btn secondary small" id="next">Next →</button></span></div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'compliance/js/compliance.js' %}"></script>{% endblock %}

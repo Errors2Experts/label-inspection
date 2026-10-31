@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Compliance Rules{% endblock %}
+{% block heading %}Compliance Rules{% endblock %}
+{% block actions %}<a class="btn" href="{% url 'page-rule-add' %}">+ Add Rule</a>{% endblock %}
+{% block content %}
+<div class="stat-grid three">
+  <div class="card stat-card"><div class="stat-label">Active Rules</div><div class="stat-num" id="st-rules">–</div></div>
+  <div class="card stat-card"><div class="stat-label">Rule Packs</div><div class="stat-num" id="st-packs">–</div></div>
+  <a class="card stat-card stat-link" href="{% url 'page-rule-categories' %}" title="Manage rule categories"><div class="stat-label">Categories</div><div class="stat-num" id="st-cats">–</div></a>
+</div>
+<div class="card">
+  <div class="card-head"><div><h2>Rule Packs</h2></div></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Pack name</th><th>Version</th><th>Rules</th><th>Applies to</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody id="pack-rows"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+  </table></div>
+</div>
+<div class="card">
+  <div class="card-head"><div><h2 id="rules-title">Rules</h2></div></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Rule ID</th><th>Rule name</th><th>Category</th><th>Severity</th><th>Status</th></tr></thead>
+    <tbody id="rule-rows"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+  </table></div>
+  <div class="pager" id="rule-pager" hidden><span id="pager-info"></span><span><button class="btn secondary small" id="prev">← Prev</button> <button class="btn secondary small" id="next">Next →</button></span></div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'compliance/js/compliance.js' %}"></script>{% endblock %}

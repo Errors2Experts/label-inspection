@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Product Details{% endblock %}
+{% block heading %}Product Details{% endblock %}
+{% block actions %}<a class="btn secondary" href="{% url 'page-products' %}">← Back</a>{% endblock %}
+{% block content %}
+<div class="card" id="product-detail" data-id="{{ pk }}"><div class="empty">Loading…</div></div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'catalogue/js/catalogue.js' %}"></script>{% endblock %}

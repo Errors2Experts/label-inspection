@@ -1,0 +1,45 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{% endblock %} · LabelInspect</title>
+  <link rel="stylesheet" href="{% static 'css/lip.css' %}">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><div class="logo">LI</div>
+      <div><div class="brand-name">LabelInspect</div><div class="brand-sub">Compliance System</div></div></div>
+    <nav class="nav">
+      {% for item in nav_items %}{% if item.section %}<div class="nav-section">{{ item.section }}</div>{% else %}
+      <a class="nav-item{% if item.active %} active{% endif %}" href="{{ item.url }}"{% if not item.ready %} data-soon="{{ item.label }}"{% endif %}>
+        <span class="nav-ico">{{ item.icon }}</span>{{ item.label }}</a>{% endif %}{% endfor %}
+    </nav>
+    <div class="side-user">
+      <a class="avatar" href="{% url 'page-profile' %}" title="My profile">{{ user.initials }}</a>
+      <div class="who"><div class="name">{{ user.full_name }}</div><div class="role">{{ user.get_role_display }}</div></div>
+      <button class="icon-btn" data-logout title="Sign out" aria-label="Sign out">⎋</button>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn menu-btn" id="menuBtn" aria-label="Menu">☰</button>
+      <h1>{% block heading %}{% endblock %}</h1>
+      <div class="topbar-right">
+        {% block actions %}{% endblock %}
+        <div class="user-menu">
+          <button class="user-trigger" aria-haspopup="true"><span class="avatar sm">{{ user.initials }}</span><span class="uname">{{ user.full_name }}</span></button>
+          <div class="user-dropdown" hidden><a href="{% url 'page-profile' %}">My profile</a><button data-logout>Sign out</button></div>
+        </div>
+      </div>
+    </header>
+    <main class="content">{% block content %}{% endblock %}</main>
+  </div>
+</div>
+<div id="toasts" aria-live="polite"></div>
+{{ lip_user|json_script:"lip-user" }}
+<script src="{% static 'js/lip.js' %}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

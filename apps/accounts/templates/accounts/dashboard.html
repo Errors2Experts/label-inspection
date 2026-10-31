@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block heading %}Dashboard{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>Welcome, {{ user.first_name|default:user.username }} 👋</h2>
+  <p class="sub">You are signed in as <strong>{{ user.get_role_display }}</strong>. Inspection statistics and analytics will appear here once the Dashboard module is delivered.</p>
+</div>
+<div class="stat-grid">
+  <a class="card link-card" href="{% url 'page-profile' %}"><h3>👤 My profile</h3><p class="sub">Update your details and password.</p></a>
+  {% if user.role != 'inspector' %}
+  <a class="card link-card" href="{% url 'page-users' %}"><h3>👥 Inspectors</h3><p class="sub">View and manage inspector accounts.</p></a>
+  <a class="card link-card" href="{% url 'page-roles' %}"><h3>🔐 Roles &amp; Permissions</h3><p class="sub">See what each role can do.</p></a>
+  {% endif %}
+</div>
+{% endblock %}

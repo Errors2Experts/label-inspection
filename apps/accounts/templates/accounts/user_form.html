@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{% if mode == 'edit' %}Edit Inspector{% else %}Add Inspector{% endif %}{% endblock %}
+{% block heading %}{% if mode == 'edit' %}Edit Inspector{% else %}Add Inspector{% endif %}{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-head"><div><h2>{% if mode == 'edit' %}Account details{% else %}New account{% endif %}</h2>
+    <p class="sub">Fields marked <span class="req">*</span> are required.</p></div></div>
+  <form id="user-form" data-mode="{{ mode }}" data-id="{{ pk|default:'' }}" novalidate>
+    <div class="alert error" hidden></div>
+    <div class="form-grid">
+      <div class="field"><label for="username">Username <span class="req">*</span></label><input id="username" name="username" autocomplete="off" required></div>
+      <div class="field"><label for="email">Email <span class="req">*</span></label><input id="email" name="email" type="email" required></div>
+      <div class="field"><label for="first_name">First name</label><input id="first_name" name="first_name"></div>
+      <div class="field"><label for="last_name">Last name</label><input id="last_name" name="last_name"></div>
+      <div class="field"><label for="role">Role <span class="req">*</span></label>
+        <select id="role" name="role"><option value="inspector">Inspector</option><option value="supervisor">Supervisor</option><option value="admin">Admin</option></select></div>
+      <div class="field"><label for="employee_id">Employee ID</label><input id="employee_id" name="employee_id"></div>
+      <div class="field"><label for="phone">Phone</label><input id="phone" name="phone" type="tel"></div>
+      {% if mode == 'edit' %}
+      <div class="field"><label for="is_active">Status</label><select id="is_active" name="is_active"><option value="true">Active</option><option value="false">Inactive</option></select></div>
+      {% else %}
+      <div class="field"><label for="password">Password <span class="req">*</span></label><input id="password" name="password" type="password" autocomplete="new-password" required><span class="hint">At least 8 characters; avoid common or all-numeric passwords.</span></div>
+      <div class="field"><label for="confirm">Confirm password <span class="req">*</span></label><input id="confirm" name="confirm" type="password" autocomplete="new-password" required></div>
+      {% endif %}
+    </div>
+    <div class="form-actions"><a class="btn secondary" href="{% url 'page-users' %}">Cancel</a><button class="btn" type="submit">{% if mode == 'edit' %}Save changes{% else %}Create account{% endif %}</button></div>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'accounts/js/users.js' %}"></script>{% endblock %}

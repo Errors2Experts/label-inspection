@@ -1,0 +1,9 @@
+<nav class="tabs" aria-label="Compliance sections">
+  {% if user.role != 'inspector' %}
+  <a href="{% url 'page-rules' %}"{% if active == 'rules' %} class="active"{% endif %}>Rules &amp; Packs</a>
+  <a href="{% url 'page-rule-categories' %}"{% if active == 'categories' %} class="active"{% endif %}>Categories</a>
+  <a href="{% url 'page-evaluate' %}"{% if active == 'evaluate' %} class="active"{% endif %}>Test Evaluation</a>
+  {% endif %}
+  <a href="{% url 'page-results' %}"{% if active == 'results' %} class="active"{% endif %}>Results</a>
+  <a href="{% url 'page-violations' %}"{% if active == 'violations' %} class="active"{% endif %}>Violations</a>
+</nav>

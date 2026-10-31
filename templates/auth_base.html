@@ -1,0 +1,20 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{% endblock %} · LabelInspect</title>
+  <link rel="stylesheet" href="{% static 'css/lip.css' %}">
+</head>
+<body class="auth-body">
+<div class="auth-card">
+  <div class="auth-brand"><div class="logo">LI</div>
+    <div><div class="brand-name">LabelInspect</div><div class="brand-sub">Compliance System</div></div></div>
+  <div class="card">{% block content %}{% endblock %}</div>
+  <div class="auth-foot">AI-assisted inspection support. Final compliance decisions rest with the inspector.</div>
+</div>
+<div id="toasts" aria-live="polite"></div>
+<script src="{% static 'js/lip.js' %}"></script>
+<script src="{% static 'accounts/js/auth.js' %}"></script>
+</body>
+</html>

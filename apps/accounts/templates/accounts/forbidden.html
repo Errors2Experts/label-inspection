@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block title %}Access denied{% endblock %}
+{% block heading %}Access denied{% endblock %}
+{% block content %}
+<div class="card empty"><h2>🔒 You don't have access to this page</h2>
+  <p>Your role ({{ user.get_role_display }}) is not permitted to use this function.</p>
+  <a class="btn" href="{% url 'page-dashboard' %}">Back to dashboard</a></div>
+{% endblock %}

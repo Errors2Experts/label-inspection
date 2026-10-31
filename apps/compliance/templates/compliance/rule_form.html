@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{% if mode == 'edit' %}Edit Rule{% else %}Add Rule{% endif %}{% endblock %}
+{% block heading %}{% if mode == 'edit' %}Edit Rule{% else %}Add Rule{% endif %}{% endblock %}
+{% block content %}
+<style>
+.section-title h3 { font-size: 15px; margin: 10px 0 0; }
+.check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px 16px; margin: 6px 0 4px; }
+.g-row { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+#guided-box > label:first-child { font-weight: 600; }
+.cond-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+.cond-row select, .cond-row input { width: auto; flex: 1 1 160px; }
+.cond-row .btn { flex: 0 0 auto; }
+#conditions { margin-top: 10px; }
+</style>
+{% include 'compliance/_tabs.html' with active='rules' %}
+<div class="card">
+  <div class="card-head"><div><h2>{% if mode == 'edit' %}Rule details{% else %}New compliance rule{% endif %}</h2>
+    <p class="sub">Fields marked <span class="req">*</span> are required.{% if mode == 'edit' %} Changing the rule logic saves a <b>new version</b>; past results keep the version they used.{% endif %}</p></div>
+    {% if mode == 'edit' %}<a class="btn secondary small" href="{% url 'page-rule-versions' pk %}">Version history</a>{% endif %}</div>
+  <form id="rule-form" data-mode="{{ mode }}" data-id="{{ pk|default:'' }}" novalidate>
+    <div class="alert error" hidden></div>
+    <div class="form-grid">
+      <div class="field"><label for="code">Rule ID</label><input id="code" name="code" maxlength="20" placeholder="Auto (e.g. R-029)"{% if mode == 'edit' %} readonly{% endif %}><span class="hint">Leave blank to assign the next number.</span></div>
+      <div class="field"><label for="title">Rule name <span class="req">*</span></label><input id="title" name="title" maxlength="200" required></div>
+      <div class="field"><label for="category">Category <span class="req">*</span></label><select id="category" name="category" required></select></div>
+      <div class="field"><label for="severity">Severity <span class="req">*</span></label><select id="severity" name="severity"><option value="critical">Critical</option><option value="major" selected>Major</option><option value="minor">Minor</option></select></div>
+      <div class="field full"><label for="regulation_ref">Regulation reference</label><input id="regulation_ref" name="regulation_ref" maxlength="200" placeholder="e.g. FSS (Labelling &amp; Display) Regs 2020, Reg 5(7)"></div>
+      <div class="field full"><label for="description">Description</label><textarea id="description" name="description"></textarea></div>
+      <div class="field full section-title"><h3>What should be checked?</h3></div>
+      <div class="field full"><label for="rule_type">Check type <span class="req">*</span></label><select id="rule_type" name="rule_type"></select><span class="hint" id="type-hint"></span></div>
+      <div class="field full" id="guided-box"></div>
+      <div class="field full"><label for="on_fail">If the check fails, mark the product as</label><select id="on_fail" name="on_fail"><option value="non_compliant">Non-Compliant (a violation is recorded)</option><option value="requires_verification">Requires Verification (the inspector checks the pack)</option></select><span class="hint">Choose Requires Verification when the check is only a keyword guess.</span></div>
+      <div class="field full section-title"><h3>When does this rule apply?</h3></div>
+      <div class="field full" id="apply-box">
+        <select id="apply-mode" aria-label="When does this rule apply?"><option value="all">To every product</option><option value="some">Only when the conditions below are true</option></select>
+        <div id="conditions" hidden><div id="cond-rows"></div><button class="btn secondary small" type="button" id="add-cond">+ Add condition</button><span class="hint">All conditions must be true. Otherwise the rule shows as Not Applicable.</span></div>
+      </div>
+      <div class="field full"><label class="check-row"><input type="checkbox" id="advanced"> Advanced: edit the settings as JSON</label></div>
+      <div class="field full" id="advanced-box" hidden>
+        <label for="parameters">Check parameters (JSON object)</label><textarea id="parameters" name="parameters" class="code-area" spellcheck="false"></textarea><span class="hint" id="fields-hint"></span>
+        <label for="applies_when" style="margin-top:12px">Applies only when (JSON list)</label><textarea id="applies_when" name="applies_when" class="code-area" spellcheck="false" style="min-height:70px" placeholder='[{"field": "importer", "op": "present"}]'></textarea><span class="hint">Ops: present, absent, contains_any, not_contains_any.</span>
+      </div>
+      <div class="field full"><label for="failure_message">Violation message</label><input id="failure_message" name="failure_message" maxlength="300" placeholder="Shown on the violation when this rule fails, e.g. MRP is missing."><span class="hint">Plain sentence shown to the inspector.</span></div>
+      {% if mode == 'edit' %}<div class="field full"><label for="change_note">Change note</label><input id="change_note" name="change_note" maxlength="255" placeholder="Why the logic changed (saved with the new version)"></div>{% endif %}
+      <div class="field full"><label class="check-row"><input type="checkbox" id="is_active" name="is_active" checked> Rule is active</label><span class="hint">Inactive rules are skipped by new evaluations.</span></div>
+    </div>
+    <div class="form-actions">{% if mode == 'edit' %}<button class="btn danger" type="button" id="delete-rule">Delete</button>{% endif %}<a class="btn secondary" href="{% url 'page-rules' %}">Cancel</a><button class="btn" type="submit">{% if mode == 'edit' %}Save changes{% else %}Save rule{% endif %}</button></div>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'compliance/js/compliance.js' %}"></script>{% endblock %}

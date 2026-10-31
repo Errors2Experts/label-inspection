@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Inspector List{% endblock %}
+{% block heading %}Inspector List{% endblock %}
+{% block actions %}{% if user.role == 'admin' %}<a class="btn" href="{% url 'page-user-add' %}">+ Add Inspector</a>{% endif %}{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-head"><div><h2>Users &amp; Inspectors</h2>
+    <p class="sub">{% if user.role == 'admin' %}Manage accounts, roles and access.{% else %}Read-only view of user accounts.{% endif %}</p></div></div>
+  <div class="toolbar">
+    <input id="f-q" type="search" placeholder="Search name, username, email or employee ID…" aria-label="Search users">
+    <select id="f-role" aria-label="Filter by role"><option value="">All roles</option><option value="admin">Admin</option><option value="supervisor">Supervisor</option><option value="inspector">Inspector</option></select>
+    <select id="f-active" aria-label="Filter by status"><option value="">All statuses</option><option value="true">Active</option><option value="false">Inactive</option></select>
+  </div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>User</th><th>Email</th><th>Role</th><th>Employee ID</th><th>Status</th><th>Last login</th><th></th></tr></thead>
+    <tbody id="user-rows"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+  </table></div>
+  <div class="pager"><span id="pager-info"></span><span><button class="btn secondary small" id="prev">← Prev</button> <button class="btn secondary small" id="next">Next →</button></span></div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'accounts/js/users.js' %}"></script>{% endblock %}

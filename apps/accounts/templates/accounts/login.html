@@ -1,0 +1,15 @@
+{% extends 'auth_base.html' %}
+{% block title %}Sign in{% endblock %}
+{% block content %}
+<h2>Sign in</h2>
+<p class="sub">Use your username or email to continue.</p>
+<form id="login-form" novalidate>
+  <div class="alert error" hidden style="margin-top:16px"></div>
+  <div class="field"><label for="identifier">Username or email</label>
+    <input id="identifier" name="identifier" autocomplete="username" autofocus required placeholder="e.g. inspector1"></div>
+  <div class="field"><label for="password">Password</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="Enter your password"></div>
+  <button class="btn" type="submit">Sign in</button>
+</form>
+<div class="auth-links"><a href="{% url 'page-forgot-password' %}">Forgot password?</a></div>
+{% endblock %}

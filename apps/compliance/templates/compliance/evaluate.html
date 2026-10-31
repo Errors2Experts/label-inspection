@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Test Evaluation{% endblock %}
+{% block heading %}Test Evaluation{% endblock %}
+{% block content %}
+{% include 'compliance/_tabs.html' with active='evaluate' %}
+<div class="card">
+  <div class="card-head"><div><h2>Evaluate label data</h2>
+    <p class="sub">Enter <b>inspector-verified</b> label data and run it against a rule pack. The Inspection module will call this same engine; AI/OCR output is never evaluated until verified.</p></div></div>
+  <form id="eval-form" novalidate>
+    <div class="alert error" hidden></div>
+    <div class="form-grid">
+      <div class="field"><label for="pack">Rule pack</label><select id="pack" name="pack"><option value="">Automatic (active pack for the date)</option></select></div>
+      <div class="field"><label for="category">Product category</label><input id="category" name="category" maxlength="150" placeholder="Used only for automatic pack choice"></div>
+      <div class="field"><label for="reference">Reference</label><input id="reference" name="reference" maxlength="100" placeholder="e.g. inspection number or product"></div>
+      <div class="field"><label for="reference_date">Evaluate as on</label><input id="reference_date" name="reference_date" type="date"></div>
+      <div class="field"><label for="product_name">Name of food</label><input id="product_name" name="product_name"></div>
+      <div class="field"><label for="brand">Brand</label><input id="brand" name="brand"></div>
+      <div class="field"><label for="mrp">MRP (₹)</label><input id="mrp" name="mrp" inputmode="decimal"></div>
+      <div class="field"><label for="net_quantity">Net quantity</label><input id="net_quantity" name="net_quantity" placeholder="e.g. 500 g"></div>
+      <div class="field"><label for="manufacturing_date">Date of manufacture / packing</label><input id="manufacturing_date" name="manufacturing_date" placeholder="DD/MM/YYYY or MMM/YYYY"></div>
+      <div class="field"><label for="expiry_date">Expiry / use-by date</label><input id="expiry_date" name="expiry_date" placeholder="DD/MM/YYYY or MMM/YYYY"></div>
+      <div class="field"><label for="best_before">Best before (optional)</label><input id="best_before" name="best_before"></div>
+      <div class="field"><label for="fssai_license">FSSAI licence number</label><input id="fssai_license" name="fssai_license"></div>
+      <div class="field full"><label for="ingredients">Ingredients</label><textarea id="ingredients" name="ingredients"></textarea></div>
+      <div class="field"><label for="manufacturer">Manufacturer (name &amp; address)</label><textarea id="manufacturer" name="manufacturer"></textarea></div>
+      <div class="field"><label for="packer">Packer</label><textarea id="packer" name="packer"></textarea></div>
+      <div class="field"><label for="importer">Importer</label><textarea id="importer" name="importer"></textarea></div>
+      <div class="field"><label for="other_declarations">Other declarations</label><textarea id="other_declarations" name="other_declarations" placeholder="Allergen statement, batch no., consumer care, warnings, country of origin…"></textarea></div>
+    </div>
+    <div class="form-actions"><button class="btn secondary" type="button" id="fill-sample">Fill sample label</button><button class="btn" type="submit">Evaluate</button></div>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'compliance/js/compliance.js' %}"></script>{% endblock %}

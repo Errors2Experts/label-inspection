@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Inspector Details{% endblock %}
+{% block heading %}Inspector Details{% endblock %}
+{% block actions %}<a class="btn secondary" href="{% url 'page-users' %}">← Back</a>{% endblock %}
+{% block content %}
+<div class="card" id="detail" data-id="{{ pk }}"><div class="empty">Loading…</div></div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'accounts/js/users.js' %}"></script>{% endblock %}

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{% if mode == 'edit' %}Rule Pack{% else %}Add Rule Pack{% endif %}{% endblock %}
+{% block heading %}{% if mode == 'edit' %}Rule Pack{% else %}Add Rule Pack{% endif %}{% endblock %}
+{% block content %}
+{% include 'compliance/_tabs.html' with active='rules' %}
+<div class="card">
+  <div class="card-head"><div><h2>Pack details</h2><p class="sub">Draft packs are never used. An active pack is used between its effective dates (leave blank for open-ended).</p></div></div>
+  <form id="pack-form" data-mode="{{ mode }}" data-id="{{ pk|default:'' }}" novalidate>
+    <div class="alert error" hidden></div>
+    <div class="form-grid">
+      <div class="field"><label for="name">Pack name <span class="req">*</span></label><input id="name" name="name" maxlength="150" required></div>
+      <div class="field"><label for="version">Version label</label><input id="version" name="version" maxlength="20" placeholder="v1.0"></div>
+      <div class="field"><label for="applies_to">Applies to (shown in list)</label><input id="applies_to" name="applies_to" maxlength="150" placeholder="All packaged food"></div>
+      <div class="field"><label for="product_categories">Product categories (comma separated)</label><input id="product_categories" name="product_categories" placeholder="Empty = every product"><span class="hint">Matched against the product's category, e.g. "Dairy".</span></div>
+      <div class="field"><label for="extends">Also apply rules of</label><select id="extends" name="extends"><option value="">— None —</option></select><span class="hint">Use for a category pack that builds on a basic pack.</span></div>
+      <div class="field"><label for="status">Status</label><select id="status" name="status"><option value="draft">Draft</option><option value="active">Active</option><option value="retired">Retired</option></select></div>
+      <div class="field"><label for="regulation_ref">Regulation reference</label><input id="regulation_ref" name="regulation_ref" maxlength="200"></div>
+      <div class="field"><label for="effective_from">Effective from</label><input id="effective_from" name="effective_from" type="date"></div>
+      <div class="field"><label for="effective_to">Effective to</label><input id="effective_to" name="effective_to" type="date"></div>
+      <div class="field full"><label for="description">Description</label><textarea id="description" name="description"></textarea></div>
+    </div>
+    <div class="form-actions">{% if mode == 'edit' %}<button class="btn danger" type="button" id="delete-pack">Delete</button>{% endif %}<a class="btn secondary" href="{% url 'page-rules' %}">Back</a><button class="btn" type="submit">{% if mode == 'edit' %}Save changes{% else %}Create pack{% endif %}</button></div>
+  </form>
+</div>
+{% if mode == 'edit' %}
+<div class="card" id="items-card">
+  <div class="card-head"><div><h2>Rules in this pack</h2><p class="sub" id="items-sub"></p></div><button class="btn secondary small" id="refresh-pack">Update to latest versions</button></div>
+  <div class="toolbar"><select id="add-rule" aria-label="Rule to add" style="flex:1;min-width:260px;width:auto"></select><button class="btn small" id="add-rule-btn">+ Add rule</button></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Rule ID</th><th>Rule name</th><th>Category</th><th>Severity</th><th>Pinned version</th><th>Actions</th></tr></thead>
+    <tbody id="item-rows"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+  </table></div>
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}<script src="{% static 'compliance/js/compliance.js' %}"></script>{% endblock %}

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Product Catalogue{% endblock %}
+{% block heading %}Product Catalogue{% endblock %}
+{% block actions %}<a class="btn" href="{% url 'page-product-add' %}" id="add-product">+ Add Product</a>{% endblock %}
+{% block content %}
+<div class="card" id="entry-card" data-mode="{{ mode }}" data-id="{{ pk|default:'' }}" hidden>
+  <h2 class="entry-title">Manual Product Entry</h2>
+  <form id="product-form" novalidate>
+    <div class="alert error" hidden></div>
+    <div class="form-grid">
+      <div class="field"><label for="name">Product Name *</label><input id="name" name="name" maxlength="255" placeholder="e.g. Amul Butter" required></div>
+      <div class="field"><label for="brand">Brand</label><input id="brand" name="brand" maxlength="150" placeholder="e.g. Amul"></div>
+      <div class="field"><label for="gtin">Barcode (GTIN/EAN)</label><input id="gtin" name="gtin" inputmode="numeric" autocomplete="off" placeholder="8901030865483"></div>
+      <div class="field"><label for="net_quantity">Net Quantity</label><input id="net_quantity" name="net_quantity" maxlength="50" placeholder="500 g"></div>
+      <div class="field"><label for="category">Category</label>
+        <select id="category" name="category"><option>Dairy</option><option>Snacks</option><option>Beverages</option><option>Other</option></select></div>
+      <div class="field"><label for="manufacturer">Manufacturer</label><input id="manufacturer" name="manufacturer" maxlength="255" placeholder="Manufacturer name"></div>
+    </div>
+    <div class="form-actions entry-actions"><button class="btn" type="submit">Save Product</button><button class="btn secondary" type="button" id="entry-cancel">Cancel</button></div>
+  </form>
+</div>
+<div class="card">
+  <div class="toolbar" style="margin:0">
+    <input id="f-q" type="search" placeholder="Search by name, brand, barcode..." aria-label="Search products" maxlength="100">
+    <select id="f-category" aria-label="Filter by category"><option value="">All Categories</option><option>Dairy</option><option>Snacks</option><option>Beverages</option><option>Other</option></select>
+  </div>
+</div>
+<div class="card">
+  <div class="table-wrap"><table>
+    <thead><tr><th>Product</th><th>Brand</th><th>Barcode</th><th>Category</th><th>Net Qty</th><th>Actions</th></tr></thead>
+    <tbody id="product-rows"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+  </table></div>
+  <div class="pager" id="pager" hidden><span id="pager-info"></span><span><button class="btn secondary small" id="prev">← Prev</button> <button class="btn secondary small" id="next">Next →</button></span></div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'catalogue/js/catalogue.js' %}"></script>{% endblock %}
