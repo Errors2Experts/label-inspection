@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Report Preview{% endblock %}
+{% block page_title %}Report Preview{% endblock %}
+{% block nav_reports %}active{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/reports/reports.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="rpt">
+  {% for message in messages %}
+    <div class="rpt-msg {{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+
+  <p><a class="rpt-btn" href="{% url 'reports:report_list' %}">← Back to Reports</a></p>
+
+  {% include "reports/_report_card.html" %}
+</div>
+{% endblock %}

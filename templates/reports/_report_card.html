@@ -1,0 +1,10 @@
+<div class="card" id="preview">
+  <div class="rpt-prev-head">
+    <h3>Report Preview — #{{ selected.report_number }}</h3>
+    <div class="btns">
+      <button type="button" class="rpt-btn" onclick="window.print()">Print</button>
+      <a class="rpt-btn primary" href="{% url 'reports:report_download' selected.pk %}">Download PDF</a>
+    </div>
+  </div>
+  {% include "reports/_report_paper.html" %}
+</div>

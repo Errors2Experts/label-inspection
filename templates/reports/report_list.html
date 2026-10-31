@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Reports{% endblock %}
+{% block page_title %}Reports{% endblock %}
+{% block nav_reports %}active{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/reports/reports.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="rpt">
+  {% for message in messages %}
+    <div class="rpt-msg {{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+
+  <div class="card" id="filters">
+    <form method="get" class="rpt-filters">
+      <input type="text" name="q" value="{{ q }}" placeholder="Search reports...">
+      <select name="result" onchange="this.form.submit()">
+        <option value="">All Status</option>
+        {% for value, label in result_choices %}
+          <option value="{{ value }}" {% if value == selected_result %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <input type="date" name="date" value="{{ date }}" onchange="this.form.submit()">
+      <span class="spacer"></span>
+      <a class="rpt-btn primary" href="{% url 'reports:report_generate_list' %}">+ Generate Report</a>
+    </form>
+  </div>
+
+  <div class="card">
+    <table class="rpt-table">
+      <thead>
+        <tr>
+          <th>Report ID</th>
+          <th>Inspection</th>
+          <th>Product</th>
+          <th>Result</th>
+          <th>Generated</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in reports %}
+        <tr>
+          <td><strong>#{{ r.report_number }}</strong></td>
+          <td>#{{ r.inspection.inspection_number }}</td>
+          <td>{{ r.inspection.product.name }}</td>
+          <td><span class="badge {{ r.result|lower }}">{{ r.get_result_display }}</span></td>
+          <td>{{ r.generated_at|date:"d M Y, H:i" }}</td>
+          <td>
+            <div class="rpt-actions">
+              <a class="rpt-btn" href="{% url 'reports:report_preview' r.pk %}">Preview</a>
+              <a class="rpt-btn primary" href="{% url 'reports:report_download' r.pk %}">⬇ PDF</a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="rpt-empty">No reports found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

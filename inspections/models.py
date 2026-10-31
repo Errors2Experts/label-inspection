@@ -91,7 +91,9 @@ class AIAnalysis(models.Model):
 class VerifiedInspectionData(models.Model):
 
     inspection = models.OneToOneField(Inspection, on_delete=models.CASCADE, related_name='verified_data')
-    product_name = models.CharField(max_length=255, blank=True)
+
+    product = models.ForeignKey('products.Product',on_delete=models.PROTECT,related_name='inspection')
+
     brand = models.CharField(max_length=255, blank=True)
     mrp = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     net_quantity = models.CharField(max_length=100, blank=True)

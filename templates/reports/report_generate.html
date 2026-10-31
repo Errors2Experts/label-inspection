@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Generate Report{% endblock %}
+{% block page_title %}Generate Report{% endblock %}
+{% block nav_reports %}active{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/reports/reports.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="rpt">
+  {% for message in messages %}
+    <div class="rpt-msg {{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+
+  <div class="card">
+    <div class="rpt-filters">
+      <strong>Generate Report</strong>
+      <span class="small" style="color:#6b7280;">Completed inspections that do not have a report yet.</span>
+      <span class="spacer"></span>
+      <a class="rpt-btn" href="{% url 'reports:report_list' %}">← Back to Reports</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <table class="rpt-table">
+      <thead>
+        <tr><th>Inspection</th><th>Product</th><th>Inspector</th><th>Completed</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+        {% for i in inspections %}
+        <tr>
+          <td><strong>#{{ i.inspection_number }}</strong></td>
+          <td>{{ i.product.name }}</td>
+          <td>{{ i.inspector.get_full_name|default:i.inspector.get_username }}</td>
+          <td>{{ i.completed_at|date:"d M Y, H:i"|default:"—" }}</td>
+          <td>
+            <form method="post" action="{% url 'reports:report_generate' i.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="rpt-btn primary">Generate</button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="rpt-empty">No completed inspections are waiting for a report.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

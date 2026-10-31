@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+  .dash { --teal: #0f766e; --border: #e5e7eb; --muted: #6b7280; --ink: #111827; color: var(--ink); }
+  .dash .card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; }
+
+  /* KPI cards */
+  .dash-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+  .dash-stat .label { font-size: 13px; color: var(--muted); font-weight: 500; }
+  .dash-stat .value { font-size: 32px; font-weight: 700; line-height: 1.2; margin: 6px 0 2px; }
+  .dash-stat .sub { font-size: 13px; color: var(--muted); }
+  .dash-stat.compliant .value { color: #15803d; }
+  .dash-stat.non_compliant .value { color: #b91c1c; }
+  .dash-stat.review .value { color: #b45309; }
+  .dash-stat.total .sub { color: var(--teal); font-weight: 500; }
+
+  /* Two-column body */
+  .dash-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: start; }
+  .dash-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .dash-head h3 { margin: 0; font-size: 16px; font-weight: 600; }
+  .dash-head a { font-size: 13px; color: var(--teal); text-decoration: none; font-weight: 500; }
+  .dash-head a:hover { text-decoration: underline; }
+
+  /* Recent inspections table */
+  .dash-table { width: 100%; border-collapse: collapse; }
+  .dash-table thead th { background: #f9fafb; color: var(--muted); font-size: 12px; font-weight: 600;
+        text-transform: uppercase; letter-spacing: .04em; text-align: left; padding: 10px 12px; }
+  .dash-table thead th:first-child { border-radius: 8px 0 0 8px; }
+  .dash-table thead th:last-child { border-radius: 0 8px 8px 0; }
+  .dash-table tbody td { padding: 13px 12px; font-size: 14px; border-bottom: 1px solid var(--border); }
+  .dash-table tbody tr:last-child td { border-bottom: 0; }
+  .dash-empty { text-align: center; color: var(--muted); padding: 24px 12px !important; }
+
+  /* Status badges */
+  .dash .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .dash .badge.compliant { background: #dcfce7; color: #15803d; }
+  .dash .badge.non_compliant { background: #fee2e2; color: #b91c1c; }
+  .dash .badge.review { background: #fef3c7; color: #b45309; }
+  .dash .badge.neutral { background: #f1f5f9; color: #475569; }
+
+  /* Top violations */
+  .dash-viol { list-style: none; margin: 0; padding: 0; }
+  .dash-viol li { padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .dash-viol li:last-child { border-bottom: 0; }
+  .dash-viol .row { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
+  .dash-viol .count { font-weight: 700; }
+  .dash-viol .bar { height: 5px; background: #f1f5f9; border-radius: 999px; margin-top: 6px; overflow: hidden; }
+  .dash-viol .bar span { display: block; height: 100%; background: #dc2626; border-radius: 999px; }
+
+  @media (max-width: 1000px) {
+    .dash-stats { grid-template-columns: repeat(2, 1fr); }
+    .dash-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 520px) { .dash-stats { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dash">
+
+  <div class="dash-stats">
+    {% for c in cards %}
+    <div class="card dash-stat {{ c.tone }}">
+      <div class="label">{{ c.label }}</div>
+      <div class="value">{{ c.value }}</div>
+      <div class="sub">{{ c.sub }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="dash-grid">
+    <div class="card">
+      <div class="dash-head">
+        <h3>Recent Inspections</h3>
+        <a href="{% url 'history_evidence' %}">View all</a>
+      </div>
+      <table class="dash-table">
+        <thead>
+          <tr><th>ID</th><th>Product</th><th>Status</th><th>Date</th></tr>
+        </thead>
+        <tbody>
+          {% for r in recent %}
+          <tr>
+            <td><strong>#{{ r.number }}</strong></td>
+            <td>{{ r.product }}</td>
+            <td><span class="badge {{ r.status_class }}">{{ r.status_label }}</span></td>
+            <td>{{ r.date }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="dash-empty">No inspections yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="dash-head"><h3>Top Violations</h3></div>
+      <ul class="dash-viol">
+        {% for v in violations %}
+        <li>
+          <div class="row"><span>{{ v.name }}</span><span class="count">{{ v.count }}</span></div>
+          <div class="bar"><span style="width: {{ v.bar }}%"></span></div>
+        </li>
+        {% empty %}
+        <li class="dash-empty" style="color:#6b7280;text-align:center;">No violations recorded.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

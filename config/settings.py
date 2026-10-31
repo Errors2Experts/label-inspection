@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     
     # Project apps
     "accounts",
+    "dashboard",
     "products",
     "inspections",
     "compliance",
