@@ -232,7 +232,7 @@ class InspectionViewSet(viewsets.ModelViewSet):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
+                
         inspection.status = Inspection.Status.OCR_PROCESSING
         inspection.save(update_fields=["status", "updated_at"])
 
