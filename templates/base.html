@@ -1,107 +1,47 @@
-
-{% load static %}
-<!DOCTYPE html>
+{% load static %}<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token }}">
-
-    <title>{% block title %}LabelInspect | Compliance System{% endblock %}</title>
-
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
-    {% block extra_css %}{% endblock %}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{% endblock %} · LabelInspect</title>
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  {% block extra_css %}{% endblock %}
 </head>
-
 <body>
-    <div class="app-layout">
-
-        <!-- Shared Sidebar -->
-        <aside class="sidebar">
-            <a href="#" class="brand" aria-label="LabelInspect home">
-                <span class="brand-mark">LI</span>
-
-                <span class="brand-info">
-                    <strong>LabelInspect</strong>
-                    <small>Compliance System</small>
-                </span>
-            </a>
-
-            <nav class="navigation" aria-label="Main navigation">
-
-                <a href="#" class="nav-link">
-                    <span class="nav-icon" aria-hidden="true">📊</span>
-                    <span>Dashboard</span>
-                </a>
-
-                <a href="{% url 'inspection_page' %}"
-                   class="nav-link {% block inspection_nav_active %}{% endblock %}">
-                    <span class="nav-icon" aria-hidden="true">🔍</span>
-                    <span>New Inspection</span>
-                </a>
-
-                <a href="#" class="nav-link">
-                    <span class="nav-icon" aria-hidden="true">📋</span>
-                    <span>History &amp; Evidence</span>
-                </a>
-
-                <a href="#" class="nav-link">
-                    <span class="nav-icon" aria-hidden="true">📦</span>
-                    <span>Product Catalogue</span>
-                </a>
-
-                <a href="#" class="nav-link">
-                    <span class="nav-icon" aria-hidden="true">⚖️</span>
-                    <span>Compliance Rules</span>
-                </a>
-
-                <a href="#" class="nav-link">
-                    <span class="nav-icon" aria-hidden="true">📄</span>
-                    <span>Reports</span>
-                </a>
-
-            </nav>
-
-            <!-- Shared Inspector Profile -->
-            <div class="sidebar-footer">
-                <div class="avatar" aria-hidden="true">
-                    {% if request.user.is_authenticated %}
-                        {{ request.user.username|slice:":1"|upper }}
-                    {% else %}
-                        I
-                    {% endif %}
-                </div>
-
-                <div class="user-info">
-                    {% if request.user.is_authenticated %}
-                        <strong>{{ request.user.username }}</strong>
-                    {% else %}
-                        <strong>Inspector</strong>
-                    {% endif %}
-                    <small>Inspector</small>
-                </div>
-            </div>
-        </aside>
-
-        <!-- Page Content: supplied by each child template -->
-        <main class="main-content">
-            <div class="content-wrapper">
-                {% block content %}
-                {% endblock %}
-            </div>
-
-            <!-- Shared Footer -->
-            <footer class="page-footer">
-                <p>
-                    LabelInspect
-                    <span aria-hidden="true">·</span>
-                    Food Label Inspection System
-                </p>
-            </footer>
-        </main>
-
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><div class="logo">LI</div>
+      <div><div class="brand-name">LabelInspect</div><div class="brand-sub">Compliance System</div></div></div>
+    <nav class="nav">
+      {% for item in nav_items %}{% if item.section %}<div class="nav-section">{{ item.section }}</div>{% else %}
+      <a class="nav-item{% if item.active %} active{% endif %}" href="{{ item.url }}"{% if not item.ready %} data-soon="{{ item.label }}"{% endif %}>
+        <span class="nav-ico">{{ item.icon }}</span>{{ item.label }}</a>{% endif %}{% endfor %}
+    </nav>
+    <div class="side-user">
+      <a class="avatar" href="{% url 'page-profile' %}" title="My profile">{{ user.initials }}</a>
+      <div class="who"><div class="name">{{ user.full_name }}</div><div class="role">{{ user.get_role_display }}</div></div>
+      <button class="icon-btn" data-logout title="Sign out" aria-label="Sign out">⎋</button>
     </div>
-
-    {% block extra_js %}{% endblock %}
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn menu-btn" id="menuBtn" aria-label="Menu">☰</button>
+      <h1>{% block heading %}{% endblock %}</h1>
+      <div class="topbar-right">
+        {% block actions %}{% endblock %}
+        <div class="user-menu">
+          <button class="user-trigger" aria-haspopup="true"><span class="avatar sm">{{ user.initials }}</span><span class="uname">{{ user.full_name }}</span></button>
+          <div class="user-dropdown" hidden><a href="{% url 'page-profile' %}">My profile</a><button data-logout>Sign out</button></div>
+        </div>
+      </div>
+    </header>
+    <main class="content">{% block content %}{% endblock %}</main>
+  </div>
+</div>
+<div id="toasts" aria-live="polite"></div>
+{{ lip_user|json_script:"lip-user" }}
+<script src="{% static 'js/main.js' %}"></script>
+{% block extra_js %}{% endblock %}
+{% block scripts %}{% endblock %}
 </body>
 </html>
