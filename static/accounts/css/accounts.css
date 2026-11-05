@@ -1,0 +1,9 @@
+/* Accounts (M1): sign-in, forgot-password and reset-password pages */
+.auth-body { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+.auth-card { width: 100%; max-width: 430px; }
+.auth-brand { display: flex; align-items: center; gap: 12px; justify-content: center; margin-bottom: 22px; }
+.auth-card h2 { font-size: 22px; margin-bottom: 4px; }
+.auth-card .field { margin-top: 16px; }
+.auth-card .btn { width: 100%; margin-top: 22px; padding: 12px; }
+.auth-links { margin-top: 18px; text-align: center; font-size: 14px; }
+.auth-foot { text-align: center; color: var(--muted); font-size: 12px; margin-top: 18px; }

@@ -4,7 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{% endblock %} · LabelInspect</title>
-  <link rel="stylesheet" href="{% static 'css/lip.css' %}">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  {% block extra_css %}{% endblock %}
 </head>
 <body>
 <div class="app">
@@ -39,7 +40,8 @@
 </div>
 <div id="toasts" aria-live="polite"></div>
 {{ lip_user|json_script:"lip-user" }}
-<script src="{% static 'js/lip.js' %}"></script>
+<script src="{% static 'js/main.js' %}"></script>
+{% block extra_js %}{% endblock %}
 {% block scripts %}{% endblock %}
 </body>
 </html>
