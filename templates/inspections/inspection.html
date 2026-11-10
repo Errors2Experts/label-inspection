@@ -1,0 +1,620 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}New Inspection | LabelInspect{% endblock %}
+
+{% block inspection_nav_active %}active{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'inspections/css/inspection.css' %}"
+>
+{% endblock %}
+
+{% block content %}
+
+<div class="inspection-page">
+
+<!-- ==========================================
+     PAGE HEADER
+=========================================== -->
+<div class="inspection-page-header">
+    <h1>New Inspection</h1>
+
+    <a href="#"
+       class="btn-cancel">
+        Cancel
+    </a>
+</div>
+
+
+<!-- ==========================================
+     FIVE-STEP INSPECTION WORKFLOW
+=========================================== -->
+<nav class="steps" aria-label="Inspection workflow">
+
+    <button
+        type="button"
+        class="step active"
+        data-step="1"
+        aria-current="step"
+    >
+        <span class="step-number">1</span>
+        <span class="step-label">Product</span>
+    </button>
+
+    <button
+        type="button"
+        class="step"
+        data-step="2"
+        disabled
+    >
+        <span class="step-number">2</span>
+        <span class="step-label">Images</span>
+    </button>
+
+    <button
+        type="button"
+        class="step"
+        data-step="3"
+        disabled
+    >
+        <span class="step-number">3</span>
+        <span class="step-label">Extract</span>
+    </button>
+
+    <button
+        type="button"
+        class="step"
+        data-step="4"
+        disabled
+    >
+        <span class="step-number">4</span>
+        <span class="step-label">Verify</span>
+    </button>
+
+    <button
+        type="button"
+        class="step"
+        data-step="5"
+        disabled
+    >
+        <span class="step-number">5</span>
+        <span class="step-label">Result</span>
+    </button>
+
+</nav>
+
+
+<!-- ==========================================
+     GLOBAL NOTIFICATION
+=========================================== -->
+<div
+    id="notice"
+    class="notice"
+    role="status"
+    aria-live="polite"
+    hidden
+></div>
+
+
+<!-- ==========================================
+     STEP 1: PRODUCT SELECTION
+=========================================== -->
+<section
+    class="panel workflow-panel"
+    data-panel="1"
+    aria-labelledby="productStepTitle"
+>
+    <div class="panel-header">
+        <div>
+            <span class="section-eyebrow">STEP 01</span>
+            <h2 id="productStepTitle">Select Product</h2>
+            <p>
+                Choose an existing catalogue product or continue with
+                an image-only inspection if supported.
+            </p>
+        </div>
+    </div>
+
+    <div class="panel-body">
+
+        <div class="form-group">
+            <label for="productId">
+                Product ID
+                <span class="required-indicator">*</span>
+            </label>
+
+            <input
+                type="number"
+                id="productId"
+                name="product_id"
+                min="1"
+                placeholder="Enter an existing product ID"
+                aria-describedby="productHelp"
+            >
+
+            <small id="productHelp" class="field-help">
+                Select an existing product from the Product Catalogue.
+                This page will not create products.
+            </small>
+        </div>
+
+        <div class="product-divider">
+            <span>OR</span>
+        </div>
+
+        <label class="checkbox-card" for="imageOnly">
+            <input
+                type="checkbox"
+                id="imageOnly"
+                name="image_only"
+            >
+
+            <span class="checkbox-card-content">
+                <strong>Image-only inspection</strong>
+                <small>
+                    Inspect label images without selecting a catalogue
+                    product, if supported by the backend.
+                </small>
+            </span>
+        </label>
+
+        <div class="form-actions">
+            <span class="form-note">
+                An inspection must be created before uploading images.
+            </span>
+
+            <button
+                type="button"
+                class="btn btn-primary"
+                id="createInspection"
+            >
+                Create Inspection
+                <span aria-hidden="true">→</span>
+            </button>
+        </div>
+
+    </div>
+</section>
+
+
+<!-- ==========================================
+     STEP 2: IMAGE UPLOAD
+=========================================== -->
+<section
+    class="panel workflow-panel"
+    data-panel="2"
+    aria-labelledby="imagesStepTitle"
+    hidden
+>
+    <div class="panel-header">
+        <div>
+            <span class="section-eyebrow">STEP 02</span>
+            <h2 id="imagesStepTitle">Upload Label Images</h2>
+            <p>
+                Upload clear images of the food package for OCR
+                and AI-based information extraction.
+            </p>
+        </div>
+    </div>
+
+    <div class="panel-body">
+
+        <div class="inspection-context">
+            <div>
+                <span class="context-label">Inspection Number</span>
+                <strong id="imageInspectionNumber">—</strong>
+            </div>
+
+            <div>
+                <span class="context-label">Selected Product</span>
+                <strong id="imageProductName">—</strong>
+            </div>
+        </div>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon" aria-hidden="true">↑</div>
+
+            <h3>Upload product label images</h3>
+
+            <p>
+                Select one or more images from your device.
+            </p>
+
+            <label for="images" class="btn btn-secondary">
+                Choose Images
+            </label>
+
+            <input
+                type="file"
+                id="images"
+                name="images"
+                accept="image/*"
+                multiple
+                hidden
+            >
+
+            <small class="field-help">
+                Maximum file size: 10 MB per image.
+                Use clear, readable label photographs.
+            </small>
+        </div>
+
+        <div
+            id="imagePreview"
+            class="image-preview-grid"
+            aria-label="Selected image previews"
+        ></div>
+
+        <p
+            id="imageSelectionInfo"
+            class="field-help"
+            aria-live="polite"
+        >
+            No images selected.
+        </p>
+
+        <div class="form-actions">
+            <button
+                type="button"
+                class="btn btn-secondary"
+                data-previous="1"
+            >
+                Back
+            </button>
+
+            <button
+                type="button"
+                class="btn btn-primary"
+                id="uploadImages"
+            >
+                Upload Images
+                <span aria-hidden="true">→</span>
+            </button>
+        </div>
+
+    </div>
+</section>
+
+
+<!-- ==========================================
+     STEP 3: OCR + AI EXTRACTION
+=========================================== -->
+<section
+    class="panel workflow-panel"
+    data-panel="3"
+    aria-labelledby="extractStepTitle"
+    hidden
+>
+    <div class="panel-header">
+        <div>
+            <span class="section-eyebrow">STEP 03</span>
+            <h2 id="extractStepTitle">Extract Label Information</h2>
+            <p>
+                Extract text from uploaded images and use AI to
+                structure the label information for inspector review.
+            </p>
+        </div>
+    </div>
+
+    <div class="panel-body">
+
+        <div class="inspection-context">
+            <div>
+                <span class="context-label">Inspection Number</span>
+                <strong id="extractInspectionNumber">—</strong>
+            </div>
+
+            <div>
+                <span class="context-label">Uploaded Images</span>
+                <strong id="extractImageCount">0</strong>
+            </div>
+        </div>
+
+        <div class="processing-list">
+
+            <div class="processing-item">
+                <div class="processing-indicator" aria-hidden="true">
+                    <span>1</span>
+                </div>
+
+                <div class="processing-content">
+                    <h3>OCR Text Extraction</h3>
+                    <p>
+                        Read text from the uploaded product label images.
+                    </p>
+                    <span
+                        id="ocrStatus"
+                        class="processing-status"
+                        aria-live="polite"
+                    >
+                        Not started
+                    </span>
+                </div>
+            </div>
+
+            <div class="processing-item">
+                <div class="processing-indicator" aria-hidden="true">
+                    <span>2</span>
+                </div>
+
+                <div class="processing-content">
+                    <h3>AI Information Extraction</h3>
+                    <p>
+                        Organize the extracted text into structured
+                        food-label fields.
+                    </p>
+                    <span
+                        id="aiStatus"
+                        class="processing-status"
+                        aria-live="polite"
+                    >
+                        Waiting for OCR
+                    </span>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="extraction-output-section">
+            <h3>Extraction Preview</h3>
+
+            <p class="field-help">
+                Review the extracted information before proceeding
+                to mandatory inspector verification.
+            </p>
+
+            <pre
+                id="extractionOutput"
+                class="extraction-output"
+                aria-live="polite"
+            >No extraction data available yet.</pre>
+        </div>
+
+        <div class="form-actions">
+            <button
+                type="button"
+                class="btn btn-secondary"
+                data-previous="2"
+            >
+                Back
+            </button>
+
+            <button
+                type="button"
+                class="btn btn-primary"
+                id="runExtraction"
+            >
+                Run OCR &amp; AI Extraction
+            </button>
+
+            <button
+                type="button"
+                class="btn btn-primary"
+                id="openVerification"
+                disabled
+            >
+                Review Extracted Data
+                <span aria-hidden="true">→</span>
+            </button>
+        </div>
+
+    </div>
+</section>
+
+
+<!-- ==========================================
+     STEP 4: INSPECTOR VERIFICATION
+=========================================== -->
+<section
+    class="panel workflow-panel"
+    data-panel="4"
+    aria-labelledby="verifyStepTitle"
+    hidden
+>
+    <div class="panel-header">
+        <div>
+            <span class="section-eyebrow">STEP 04</span>
+            <h2 id="verifyStepTitle">Verify Label Information</h2>
+            <p>
+                Review and correct AI-extracted values before
+                submitting the verified information.
+            </p>
+        </div>
+    </div>
+
+    <div class="panel-body">
+
+        <div class="verification-notice">
+            <strong>Inspector review required</strong>
+            <p>
+                AI-extracted information is a draft. Check the actual
+                label images and correct any inaccurate values.
+            </p>
+        </div>
+
+        <div class="inspection-context">
+            <div>
+                <span class="context-label">Inspection Number</span>
+                <strong id="verifyInspectionNumber">—</strong>
+            </div>
+
+            <div>
+                <span class="context-label">Verification Status</span>
+                <strong id="verificationStatus">Pending</strong>
+            </div>
+        </div>
+
+        <form id="verificationForm" novalidate>
+
+            <div
+                id="verificationFields"
+                class="verification-fields"
+            >
+                <!--
+                    inspection.js will generate editable fields
+                    from the AI structured data.
+
+                    Expected fields include:
+                    product_name, brand, mrp, net_quantity,
+                    manufacturing_date, best_before, expiry_date,
+                    ingredients, fssai_license, manufacturer,
+                    packer, importer, other_declarations.
+                -->
+            </div>
+
+            <div class="form-group">
+                <label for="inspectorRemarks">
+                    Inspector Remarks
+                </label>
+
+                <textarea
+                    id="inspectorRemarks"
+                    name="inspector_remarks"
+                    rows="4"
+                    placeholder="Enter verification notes, corrections, or observations..."
+                ></textarea>
+
+                <small class="field-help">
+                    Record any important corrections or observations
+                    made during manual verification.
+                </small>
+            </div>
+
+            <label class="checkbox-card" for="confirmVerification">
+                <input
+                    type="checkbox"
+                    id="confirmVerification"
+                    name="confirm_verification"
+                    required
+                >
+
+                <span class="checkbox-card-content">
+                    <strong>Confirm inspector verification</strong>
+                    <small>
+                        I have reviewed the label information and
+                        verified the values against the available images.
+                    </small>
+                </span>
+            </label>
+
+            <div class="form-actions">
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-previous="3"
+                >
+                    Back
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                    id="submitVerification"
+                >
+                    Submit Verification
+                    <span aria-hidden="true">→</span>
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</section>
+
+
+<!-- ==========================================
+     STEP 5: INSPECTION RESULT
+=========================================== -->
+<section
+    class="panel workflow-panel"
+    data-panel="5"
+    aria-labelledby="resultStepTitle"
+    hidden
+>
+    <div class="panel-header">
+        <div>
+            <span class="section-eyebrow">STEP 05</span>
+            <h2 id="resultStepTitle">Inspection Result</h2>
+            <p>
+                Review the saved inspection and verification status.
+            </p>
+        </div>
+    </div>
+
+    <div class="panel-body">
+
+        <div class="result-summary">
+            <div class="result-icon" aria-hidden="true">✓</div>
+
+            <h3 id="resultHeading">Verification Submitted</h3>
+
+            <p id="resultDescription">
+                The inspection verification response will appear here.
+            </p>
+        </div>
+
+        <div class="result-details">
+
+            <div class="result-detail">
+                <span class="context-label">Inspection Number</span>
+                <strong id="resultInspectionNumber">—</strong>
+            </div>
+
+            <div class="result-detail">
+                <span class="context-label">Inspection Status</span>
+                <strong id="resultInspectionStatus">—</strong>
+            </div>
+
+            <div class="result-detail">
+                <span class="context-label">Images Uploaded</span>
+                <strong id="resultImageCount">—</strong>
+            </div>
+
+        </div>
+
+        <div
+            id="resultOutput"
+            class="result-output"
+            aria-live="polite"
+        >
+            <h3>Next Step</h3>
+
+            <p>
+                Compliance evaluation will be connected when the
+                Compliance module and its API are available.
+                Inspector verification alone does not indicate
+                that a product is compliant or non-compliant.
+            </p>
+        </div>
+
+        <div class="form-actions">
+            <button
+                type="button"
+                class="btn btn-secondary"
+                data-previous="4"
+            >
+                Back to Verification
+            </button>
+
+            <button
+                type="button"
+                class="btn btn-primary"
+                id="finishInspection"
+            >
+                Finish Inspection
+            </button>
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}
+
+</div>
+
+{% block extra_js %}
+<script src="{% static 'inspections/js/inspection.js' %}" defer></script>
+{% endblock %}
