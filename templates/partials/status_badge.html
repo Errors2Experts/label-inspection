@@ -1,0 +1,12 @@
+{# usage: {% include "partials/status_badge.html" with status=obj.status label=obj.get_status_display %} #}
+{% if status == "VERIFIED" or status == "COMPLETED" %}
+  <span class="badge success">{{ label|default:status }}</span>
+{% elif status == "FAILED" %}
+  <span class="badge danger">{{ label|default:status }}</span>
+{% elif status == "VERIFICATION_PENDING" %}
+  <span class="badge warning">{{ label|default:status }}</span>
+{% elif status == "IMAGE_CAPTURE" or status == "OCR_PROCESSING" or status == "OCR_COMPLETED" or status == "AI_PROCESSING" or status == "EVALUATING" %}
+  <span class="badge info">{{ label|default:status }}</span>
+{% else %}
+  <span class="badge default">{{ label|default:status }}</span>
+{% endif %}
